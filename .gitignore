@@ -1,0 +1,25 @@
+.terraform/
+# .gitignore
+
+# Python
+__pycache__/
+*.py[cod]
+*.ipynb_checkpoints
+*.pkl
+*.h5
+*.pt
+*.ckpt
+
+# Dados
+*.csv
+*.tsv
+*.json
+*.zip
+*.gz
+hf_cache/
+glove.*
+*.npy
+
+# Colab
+.env
+.DS_Store

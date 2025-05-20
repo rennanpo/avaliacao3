@@ -1,0 +1,62 @@
+name: Deploy ToDo App
+
+on:
+  push:
+    branches:
+      - main
+
+
+env:
+  AWS_REGION: eu-central-1
+  ECR_REPO: todo-list-DP011
+  TF_LOG: DEBUG
+  TF_VAR_node_role_arn: arn:aws:iam::325583868777:role/role-for-eksDeepDiveFrankfurt-eks-cluster
+  TF_VAR_ssh_key_name: rpc
+
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v3
+      
+      - name: Configurar AWS
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-central-1
+
+      - name: Instalar Terraform
+        uses: hashicorp/setup-terraform@v2
+
+      - name: Criar repositório ECR com Terraform
+        working-directory: terraform
+        run: |
+          terraform init
+          terraform apply \
+            -target=aws_ecr_repository.todo_repo \
+            -var="todo_image=dummy" \
+            -auto-approve
+
+      - name: Login no ECR
+        run: |
+          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+          aws ecr get-login-password --region eu-central-1 | docker login --username AWS --password-stdin $ACCOUNT_ID.dkr.ecr.eu-central-1.amazonaws.com
+
+      - name: Build e Push da imagem Docker
+        working-directory: ./CI-CD/app
+        run: |
+          IMAGE_TAG=$(date +%s)
+          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+          IMAGE_URI=$ACCOUNT_ID.dkr.ecr.eu-central-1.amazonaws.com/todo-app:$IMAGE_TAG
+          docker build -t $IMAGE_URI .
+          docker push $IMAGE_URI
+          echo "todo_image = \"$IMAGE_URI\"" > ../terraform/terraform.tfvars
+
+      - name: Deploy com Terraform
+        run: |
+          cd terraform
+          terraform init
+          terraform apply -auto-approve
