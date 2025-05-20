@@ -43,7 +43,8 @@ resource "kubernetes_service" "todo" {
 
   spec {
     selector = {
-      app = kubernetes_deployment.todo.metadata[0].labels.app
+      app = kubernetes_deployment.todo-app.metadata[0].labels.app
+
     }
 
     port {
