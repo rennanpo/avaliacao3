@@ -2,7 +2,7 @@ resource "kubernetes_deployment" "todo-app" {
   metadata {
     name = "todo-deployment"
     labels = {
-      app = "todo"
+      app = "todo-app"
     }
   }
 
@@ -43,7 +43,7 @@ resource "kubernetes_service" "todo" {
 
   spec {
     selector = {
-      app = kubernetes_deployment.todo-app.metadata.labels.app
+      app = kubernetes_deployment.todo-app.metadata[0].labels.app
     }
 
     port {
