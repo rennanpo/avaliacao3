@@ -43,7 +43,7 @@ jobs:
           ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
           aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
 
-            - name: Build e Push da imagem Docker
+      - name: Build e Push da imagem Docker
         run: |
           IMAGE_TAG=$(date +%s)
           ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
