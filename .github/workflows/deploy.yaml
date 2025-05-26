@@ -25,7 +25,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: eu-central-1
+          aws-region: ${{ env.AWS_REGION }}
 
       - name: Instalar Terraform
         uses: hashicorp/setup-terraform@v2
@@ -36,26 +36,31 @@ jobs:
           terraform init
           terraform apply \
             -target=aws_ecr_repository.todo_app \
-            -var="todo_image=dummy" \
             -auto-approve
 
       - name: Login no ECR
         run: |
           ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-          aws ecr get-login-password --region eu-central-1 | docker login --username AWS --password-stdin $ACCOUNT_ID.dkr.ecr.eu-central-1.amazonaws.com
+          aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
 
-      - name: Build e Push da imagem Docker
-        working-directory: .
+            - name: Build e Push da imagem Docker
         run: |
           IMAGE_TAG=$(date +%s)
           ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
           IMAGE_URI=$ACCOUNT_ID.dkr.ecr.eu-central-1.amazonaws.com/$ECR_REPO:$IMAGE_TAG
           docker build -t $IMAGE_URI .
           docker push $IMAGE_URI
-          echo "todo_image = \"$IMAGE_URI\"" > ../terraform/terraform.tfvars
+
+          # Atualiza o k8s-resources.tf com a nova imagem
+          sed -i "s|image = .*|image = \"$IMAGE_URI\"|" terraform/k8s-resources.tf
+
+
+      - name: Substituir imagem no Terraform (sed)
+        run: |
+          sed -i "s|image = .*|image = \"$IMAGE_URI\"|" terraform/k8s-resources.tf
 
       - name: Deploy com Terraform
+        working-directory: terraform
         run: |
-          cd terraform
           terraform init
           terraform apply -auto-approve
