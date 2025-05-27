@@ -24,7 +24,8 @@ resource "kubernetes_deployment" "todo-app" {
 
       spec {
         container {
-          image = "325583868777.dkr.ecr.eu-central-1.amazonaws.com/rennanpc1/todo-app:1.0.1"
+          image = 325583868777.dkr.ecr.eu-central-1.amazonaws.com/rennanpc1/todo-app:1.0.1
+
           name  = "todo-app"
 
           port {
