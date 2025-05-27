@@ -36,6 +36,7 @@ jobs:
           terraform init
           terraform apply \
             -target=aws_ecr_repository.todo_app \
+            -var="todo_image=dummy" \
             -auto-approve
 
       - name: Login no ECR
@@ -47,17 +48,14 @@ jobs:
         run: |
           IMAGE_TAG=$(date +%s)
           ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-          IMAGE_URI=$ACCOUNT_ID.dkr.ecr.eu-central-1.amazonaws.com/$ECR_REPO:$IMAGE_TAG
+          IMAGE_URI=$ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPO:$IMAGE_TAG
+          
           docker build -t $IMAGE_URI .
           docker push $IMAGE_URI
 
-          # Atualiza o k8s-resources.tf com a nova imagem
-          sed -i "s|image = .*|image = \"$IMAGE_URI\"|" terraform/k8s-resources.tf
-
-
-      - name: Substituir imagem no Terraform (sed)
-        run: |
-          sed -i "s|image = .*|image = \"$IMAGE_URI\"|" terraform/k8s-resources.tf
+          echo "node_role_arn = \"$TF_VAR_node_role_arn\"" > terraform/terraform.tfvars
+          echo "ssh_key_name  = \"$TF_VAR_ssh_key_name\""  >> terraform/terraform.tfvars
+          echo "todo_image    = \"$IMAGE_URI\""            >> terraform/terraform.tfvars
 
       - name: Deploy com Terraform
         working-directory: terraform
