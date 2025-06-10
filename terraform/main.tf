@@ -1,9 +1,3 @@
-provider "kubernetes" {
-  host                   = data.aws_eks_cluster.eks.endpoint
-  cluster_ca_certificate = base64decode(data.aws_eks_cluster.eks.certificate_authority[0].data)
-  token                  = data.aws_eks_cluster_auth.eks.token
-}
-
 # Referência ao cluster EKS existente
 data "aws_eks_cluster" "eks" {
   name = "eksDeepDiveFrankfurt"
@@ -17,7 +11,7 @@ data "aws_eks_cluster_auth" "eks" {
 data "aws_vpc" "eks_vpc" {
   filter {
     name   = "tag:Name"
-    values = ["myvpc-cdcp"]
+    values = ["EKS-VPC-RPC-VPC"]
   }
 }
 
