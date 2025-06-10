@@ -1,6 +1,6 @@
 # Referência ao cluster EKS existente
 data "aws_eks_cluster" "eks" {
-  name = "eksDeepDive"
+  name = "EKSDeepDive"
 }
 
 data "aws_eks_cluster_auth" "eks" {

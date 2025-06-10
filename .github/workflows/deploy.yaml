@@ -33,12 +33,11 @@ jobs:
       - name: Criar repositório ECR com Terraform
         working-directory: terraform
         run: |
+        
           terraform init
-          terraform apply \
-            -target=aws_ecr_repository.todo_app \
-            -var="todo_image=dummy" \
-            -auto-approve
-
+          terraform apply -auto-approve
+          
+    
       - name: Login no ECR
         run: |
           ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
