@@ -30,12 +30,21 @@ jobs:
       - name: Instalar Terraform
         uses: hashicorp/setup-terraform@v2
 
+      - name: Criar repositório ECR com Terraform
+        working-directory: terraform
+        run: |
+          terraform init
+          terraform apply \
+            -target=aws_ecr_repository.todo_app \
+            -var="todo_image=dummy" \
+            -auto-approve
+
       - name: Login no ECR
         run: |
           ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
           aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
 
-      - name: Build e Push da imagem Docker
+      - name: Build e Push da imagem Docker + gerar terraform.tfvars
         run: |
           IMAGE_TAG=$(date +%s)
           ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
@@ -47,12 +56,6 @@ jobs:
           echo "node_role_arn = \"$TF_VAR_node_role_arn\"" > terraform/terraform.tfvars
           echo "ssh_key_name  = \"$TF_VAR_ssh_key_name\""  >> terraform/terraform.tfvars
           echo "todo_image    = \"$IMAGE_URI\""            >> terraform/terraform.tfvars
-
-      - name: Criar repositório ECR com Terraform
-        working-directory: terraform
-        run: |
-          terraform init
-          terraform apply -auto-approve
 
       - name: Deploy com Terraform
         working-directory: terraform
