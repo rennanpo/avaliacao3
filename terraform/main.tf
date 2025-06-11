@@ -1,6 +1,6 @@
 # Referência ao cluster EKS existente
 data "aws_eks_cluster" "eks" {
-  name = "EKSDeepDive"
+  name = "eks-deep-dive"
 }
 
 data "aws_eks_cluster_auth" "eks" {
@@ -11,7 +11,7 @@ data "aws_eks_cluster_auth" "eks" {
 data "aws_vpc" "eks_vpc" {
   filter {
     name   = "tag:Name"
-    values = ["EKS-VPC-RPC-VPC"]
+    values = ["eks-vpc"]
   }
 }
 
