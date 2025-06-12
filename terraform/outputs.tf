@@ -7,5 +7,6 @@ output "node_group_name" {
 }
 
 output "load_balancer_hostname" {
-  value = kubernetes_service.todo_service.status[0].load_balancer[0].ingress[0].hostname
+  value       = try(kubernetes_service.todo.status[0].load_balancer[0].ingress[0].hostname, "")
+  description = "Hostname público do Load Balancer"
 }
