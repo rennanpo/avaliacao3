@@ -1,6 +1,7 @@
 FROM node:lts-alpine
 WORKDIR /app
-COPY app/ .
+COPY app/package*.json ./
 RUN yarn install --production
-CMD ["node", "src/index.js"]
+COPY app/ .
 EXPOSE 3000
+CMD ["node", "src/index.js"]
